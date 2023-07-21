@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import deploy from "./deploy";
-import Escrow from "./Escrow";
 import axios from "axios";
 import Escrowhead from "./artifacts/contracts/Escrow.sol/Escrow";
 
@@ -17,20 +16,17 @@ function App() {
   const [account, setAccount] = useState();
   const [signer, setSigner] = useState();
   const [isApproved, setIsApproved] = useState(false);
-  const [defi, setDefi] = useState([]);
 
   useEffect(() => {
     axios
       .get("http://localhost:8080/")
       .then((response) => {
-        // console.log(response);
-        setDefi(response.data);
-        console.log(defi);
+        setEscrows(response.data);
       })
       .catch((error) => {
         console.log(error);
       });
-  }, [escrows]);
+  });
 
   useEffect(() => {
     async function getAccounts() {
@@ -45,15 +41,12 @@ function App() {
 
   async function approveContract(index) {
     const escrowContract = await new ethers.Contract(
-      defi[index].contractAddress,
+      escrows[index].contractAddress,
       Escrowhead.abi,
       signer
     );
     console.log(escrowContract.address);
     try {
-      // escrowContract.on("Approved", () => {});
-      // // console.log(signer);
-      // await approve(escrowContract, signer);
       const approvedContract = await escrowContract.approve();
       await approvedContract.wait(1);
       setIsApproved(true);
@@ -98,25 +91,6 @@ function App() {
       .catch(function (error) {
         console.log(error);
       });
-
-    const escrow = {
-      address: escrowContract.address,
-      arbiter,
-      beneficiary,
-      value: value.toString(),
-      handleApprove: async () => {
-        escrowContract.on("Approved", () => {
-          document.getElementById(escrowContract.address).className =
-            "complete";
-          document.getElementById(escrowContract.address).innerText =
-            "✓ It's been approved!";
-        });
-
-        await approve(escrowContract, signer);
-      },
-    };
-
-    setEscrows([...escrows, escrow]);
   }
 
   return (
@@ -152,18 +126,9 @@ function App() {
           </div>
         </div>
 
-        {/* <div className="existing-contracts">
-          <h1> Existing Contracts </h1>
-
-          <div id="container">
-            {escrows.map((escrow) => {
-              return <Escrow key={escrow.address} {...escrow} />;
-            })}
-          </div>
-        </div> */}
         <div className="existing-contracts">
           <h1> Database Contracts</h1>
-          {defi.map((contract, i) => {
+          {escrows.map((contract, i) => {
             return (
               <div key={i} className="existing-contract">
                 <p>
