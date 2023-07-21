@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import deploy from "./deploy";
 import Escrow from "./Escrow";
 import axios from "axios";
+import Escrowhead from "./artifacts/contracts/Escrow.sol/Escrow";
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -15,12 +16,16 @@ function App() {
   const [escrows, setEscrows] = useState([]);
   const [account, setAccount] = useState();
   const [signer, setSigner] = useState();
+  const [isApproved, setIsApproved] = useState(false);
+  const [defi, setDefi] = useState([]);
 
   useEffect(() => {
     axios
       .get("http://localhost:8080/")
       .then((response) => {
-        console.log(response);
+        // console.log(response);
+        setDefi(response.data);
+        console.log(defi);
       })
       .catch((error) => {
         console.log(error);
@@ -38,6 +43,37 @@ function App() {
     getAccounts();
   }, [account]);
 
+  async function approveContract(index) {
+    const escrowContract = await new ethers.Contract(
+      defi[index].contractAddress,
+      Escrowhead.abi,
+      signer
+    );
+    console.log(escrowContract.address);
+    try {
+      // escrowContract.on("Approved", () => {});
+      // // console.log(signer);
+      // await approve(escrowContract, signer);
+      const approvedContract = await escrowContract.approve();
+      await approvedContract.wait(1);
+      setIsApproved(true);
+
+      axios
+        .put("http://localhost:8080/", {
+          contractAddress: escrowContract.address,
+        })
+        .then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    } catch (e) {
+      console.log(e);
+      console.log(signer);
+    }
+  }
+
   async function newContract() {
     const beneficiary = document.getElementById("beneficiary").value;
     const arbiter = document.getElementById("arbiter").value;
@@ -54,6 +90,7 @@ function App() {
         contractAddress: escrowContract.address,
         beneficiary: beneficiary,
         value: Number(value),
+        isApproved: false,
       })
       .then(function (response) {
         console.log(response);
@@ -83,47 +120,84 @@ function App() {
   }
 
   return (
-    <>
-      <div className="contract">
-        <h1> New Contract </h1>
-        <label>
-          Arbiter Address
-          <input type="text" id="arbiter" />
-        </label>
+    <div className="escrow">
+      <div className="container">
+        <div className="contract">
+          <h1> New Contract </h1>
+          <label>
+            Arbiter Address
+            <input type="text" id="arbiter" />
+          </label>
 
-        <label>
-          Beneficiary Address
-          <input type="text" id="beneficiary" />
-        </label>
+          <label>
+            Beneficiary Address
+            <input type="text" id="beneficiary" />
+          </label>
 
-        <label>
-          Deposit Amount (in Ether)
-          <input type="text" id="ether" />
-        </label>
+          <label>
+            Deposit Amount (in Ether)
+            <input type="text" id="ether" />
+          </label>
 
-        <div
-          className="button"
-          id="deploy"
-          onClick={(e) => {
-            e.preventDefault();
+          <div
+            className="button"
+            id="deploy"
+            onClick={(e) => {
+              e.preventDefault();
 
-            newContract();
-          }}
-        >
-          Deploy
+              newContract();
+            }}
+          >
+            Deploy
+          </div>
         </div>
-      </div>
 
-      <div className="existing-contracts">
-        <h1> Existing Contracts </h1>
+        {/* <div className="existing-contracts">
+          <h1> Existing Contracts </h1>
 
-        <div id="container">
-          {escrows.map((escrow) => {
-            return <Escrow key={escrow.address} {...escrow} />;
+          <div id="container">
+            {escrows.map((escrow) => {
+              return <Escrow key={escrow.address} {...escrow} />;
+            })}
+          </div>
+        </div> */}
+        <div className="existing-contracts">
+          <h1> Database Contracts</h1>
+          {defi.map((contract, i) => {
+            return (
+              <div key={i} className="existing-contract">
+                <p>
+                  {" "}
+                  <span className="contract-info">Address: </span>{" "}
+                  {contract.contractAddress}
+                </p>
+                <p>
+                  {" "}
+                  <span className="contract-info">Arbiter:</span>{" "}
+                  {contract.arbiter}
+                </p>
+                <p>
+                  <span className="contract-info">Benficiary: </span>
+                  {contract.beneficiary}
+                </p>
+                <p>
+                  {" "}
+                  <span className="contract-info">Value: </span>
+                  {contract.value / 1e18} ETH
+                </p>
+                <button
+                  disabled={contract.isApproved}
+                  onClick={() => approveContract(i)}
+                  className="button"
+                >
+                  {contract.isApproved ? "✓ It's been approved!" : "Approve"}
+                </button>
+              </div>
+            );
           })}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

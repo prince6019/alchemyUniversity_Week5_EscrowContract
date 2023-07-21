@@ -1,15 +1,29 @@
 body {
   background-color: #eee;
-  display: flex;
   font-family: 'Muli', sans-serif;
+}
+.escrow{
+  width: 100%;
+}
+.container{
+  width: 80%;
+  margin: 0 auto;
 }
 
 .contract, .existing-contracts {
   margin: 20px;
-  display: inline-block;
   padding: 40px;
   border: 1px solid #ddd;
   background-color: #fff;
+}
+.contract{
+  width: 40%;
+  margin: 0 auto;
+  margin-top: 3rem;
+  border-radius: 10px;
+}
+.existing-contracts{
+  margin-top: 3rem;
 }
 
 h1 {
@@ -30,6 +44,9 @@ input[type="text"] {
   padding: 6px;
   font-size: 18px;
 }
+.contract-info{
+  font-weight: 600;
+}
 
 .button {
   background-color: #f58427;
@@ -42,29 +59,23 @@ input[type="text"] {
   font-size: 14px;
   letter-spacing: 1px;
   cursor: pointer;
+  border: none;
+  outline: none;
+  box-shadow: 2px 2px 3px gray;
+  transition: all ease-in 0.3s;
 }
-
-.existing-contract ul {
+.button:hover{
+  box-shadow: 4px 4px 5px gray;
+}
+.button:disabled{
+  opacity: 0.7;
+}
+.existing-contract{
+  background-color: #eee;
   padding: 10px;
   margin: 20px;
-  background-color: #eee;
+
 }
 
-.existing-contract ul > li {
-  list-style: none;
-  display: flex;
-  margin: 10px;
-}
 
-.existing-contract ul > li > div {
-  margin: 0 5px;
-}
-
-.existing-contract ul > li > :first-child {
-  font-weight: bold;
-}
-
-.existing-contract .complete {
-  color: #5aa75a;
-  text-align: center;
-}
+/* color: #5aa75a; */
